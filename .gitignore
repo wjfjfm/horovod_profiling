@@ -1,0 +1,14 @@
+# For pycache
+**/__pycache__/
+
+# For pytest cache
+.pytest_cache/
+
+# For output file of Unitest
+/tests/output/*
+
+# For vscode
+.vscode/
+
+# For jupyter
+*ipynb*

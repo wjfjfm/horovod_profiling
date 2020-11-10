@@ -1,0 +1,5 @@
+[flake8]
+# Exclude tools for models
+exclude = tf_profile/models/CNN,\
+          tf_profile/models/RNN
+        
