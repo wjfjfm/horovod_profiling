@@ -95,6 +95,12 @@ To get all models’ 4 GPUs horovod performance
   horovodrun -np 4 -H localhost:4 python profile.py –o
   ```
 
+To to the allreduce test:
+
+```bash
+python profile.py -m allreduce --horovod -n 8 -o graphs11 --session 1 --step 20 
+```
+
 ## Usage
 
 use a cmd-line tool `python profile.py` to do the profiling

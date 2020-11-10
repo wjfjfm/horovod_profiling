@@ -116,7 +116,7 @@ class Horovod_Allreduce:
         data_b = tf.random.uniform(
             [1024, 1024], 0.0, 1.0, dtype=dtype)
         tensor = data_a + data_b
-        for i in range(9):
+        for i in range(1000):
             tensor = data_a + tensor 
             summed = hvd.allreduce(tensor, average=False)
             hvd_op_list.append(summed)
