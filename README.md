@@ -98,9 +98,9 @@ To get all models’ 4 GPUs horovod performance
 To to the allreduce test:
 
 ```bash
-N_KB_PER_TENSOR=56 python profile.py -m allreduce --horovod -n 8 -o nKB_56_gpu_8 --session 1 --step 55 -t
-N_KB_PER_TENSOR=56 python profile.py -m allreduce --horovod -n 8 -o nKB_56_gpu_8 --graph
-N_KB_PER_TENSOR=56 python profile.py -m allreduce --horovod -n 8 -o nKB_56_gpu_8 --session 1 --step 10 --timeline1
+N_KB_PER_TENSOR=64 python profile.py -m allreduce --horovod -n 8 -o nKB_64_gpu_8 --session 1 --step 55 -t
+N_KB_PER_TENSOR=64 python profile.py -m allreduce --horovod -n 8 -o nKB_64_gpu_8 --graph
+N_KB_PER_TENSOR=64 python profile.py -m allreduce --horovod -n 8 -o nKB_64_gpu_8 --session 1 --step 10 --timeline1
 ```
 
 ## Usage

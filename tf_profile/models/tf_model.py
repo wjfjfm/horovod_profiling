@@ -16,7 +16,7 @@ class RNN_Nasnet:
 
 
 class RNN_Seq2seq:
-    def make_model(batchsize=None):
+    def make_model(batchsize=None):s
         op, loss = Seq2seqFn(batchsize=batchsize)
         return op, loss
 
@@ -112,13 +112,15 @@ class Horovod_Allreduce:
         dtype = tf.float32
 
         nKB = int(os.getenv("N_KB_PER_TENSOR"))
+        
         data_a = tf.random.uniform(
             [256, nKB], 0.0, 1.0, dtype=dtype)
         data_b = tf.random.uniform(
             [256, nKB], 0.0, 1.0, dtype=dtype)
         tensor = data_a + data_b
 
-        ite_times = int(1024*1024*4/nKB)
+        ite_times = int(os.getenv("N_ITERATION_TIMES")) 
+
         for i in range(ite_times):
             tensor = data_a + tensor 
             summed = hvd.allreduce(tensor, average=False)
