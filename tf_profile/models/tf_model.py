@@ -7,7 +7,7 @@ from .CNN.CNN_utils import (Dataset,
                             build_convNet_horovod)
 import horovod.tensorflow as hvd
 import tensorflow as tf
-
+import os
 
 class RNN_Nasnet:
     def make_model(batchsize=None):
@@ -111,12 +111,15 @@ class Horovod_Allreduce:
         hvd_op_list = []
         dtype = tf.float32
 
+        nKB = int(os.getenv("N_KB_PER_TENSOR"))
         data_a = tf.random.uniform(
-            [1024, 1024], 0.0, 1.0, dtype=dtype)
+            [256, nKB], 0.0, 1.0, dtype=dtype)
         data_b = tf.random.uniform(
-            [1024, 1024], 0.0, 1.0, dtype=dtype)
+            [256, nKB], 0.0, 1.0, dtype=dtype)
         tensor = data_a + data_b
-        for i in range(1000):
+
+        ite_times = int(1024*1024*4/nKB)
+        for i in range(ite_times):
             tensor = data_a + tensor 
             summed = hvd.allreduce(tensor, average=False)
             hvd_op_list.append(summed)
