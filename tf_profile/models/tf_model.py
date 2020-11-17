@@ -111,20 +111,17 @@ class Horovod_Allreduce:
         hvd_op_list = []
         dtype = tf.float32
 
-        nKB = int(os.getenv("N_KB_PER_TENSOR"))
+        model = os.getenv("ALLREDUCE_MODEL")
 
-        data_a = tf.random.uniform(
-            [256, nKB], 0.0, 1.0, dtype=dtype)
-        data_b = tf.random.uniform(
-            [256, nKB], 0.0, 1.0, dtype=dtype)
-        tensor = data_a + data_b
-
-        ite_times = int(os.getenv("N_ITERATION_TIMES")) 
-
-        for i in range(ite_times):
-            tensor = data_a + tensor 
-            summed = hvd.allreduce(tensor, average=False)
-            hvd_op_list.append(summed)
+        with open('allreduce_shape/%s_allreduce_shape.txt' % model, 'r') as f:
+            content = f.readlines()
+        
+        for i in range (128):
+            for line in content:
+                nFT = int(line)
+                data_a = tf.random.uniform([1, nFT], 0.0, 1.0, dtype=dtype)
+                summed = hvd.allreduce(data_a, average=False)
+                hvd_op_list.append(summed)
         final_op = tf.shape_n(hvd_op_list)        
 
         return final_op, None 
@@ -144,7 +141,7 @@ _model_name = {
     }
 
 _model_name_horovod = {
-        # 'nasnet': RNN_horovod_Nasnet,
+        'nasnet': RNN_horovod_Nasnet,
         'seq2seq': RNN_horovod_Seq2seq,
         'deepspeech': RNN_horovod_Deepspeech,
         'lstm': RNN_horovod_Lstm,

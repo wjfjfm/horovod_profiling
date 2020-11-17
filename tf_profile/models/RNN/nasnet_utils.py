@@ -439,8 +439,7 @@ class NasNetABaseCell(object):
                 num_cells = self._total_num_cells
                 layer_ratio = (self._cell_num + 1) / float(num_cells)
                 if use_summaries:
-                    with tf.device('/cpu:0'):
-                        tf.summary.scalar('layer_ratio', layer_ratio)
+                    tf.summary.scalar('layer_ratio', layer_ratio)
                 drop_path_keep_prob = 1 - layer_ratio * \
                     (1 - drop_path_keep_prob)
             if drop_connect_version in ['v1', 'v3']:
@@ -452,14 +451,12 @@ class NasNetABaseCell(object):
                 current_ratio = current_step / drop_path_burn_in_steps
                 current_ratio = tf.minimum(1.0, current_ratio)
                 if use_summaries:
-                    with tf.device('/cpu:0'):
-                        tf.summary.scalar('current_ratio', current_ratio)
+                    tf.summary.scalar('current_ratio', current_ratio)
                 drop_path_keep_prob = (
                     1 - current_ratio * (1 - drop_path_keep_prob))
             if use_summaries:
-                with tf.device('/cpu:0'):
-                    tf.summary.scalar(
-                        'drop_path_keep_prob', drop_path_keep_prob)
+                tf.summary.scalar(
+                    'drop_path_keep_prob', drop_path_keep_prob)
             net = drop_path(net, drop_path_keep_prob)
         return net
 

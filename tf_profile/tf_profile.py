@@ -90,6 +90,7 @@ def run_model(model, horovod=False, gpu_num=1, output=None,
         if horovod is True:
             config.gpu_options.allow_growth = False
             config.gpu_options.visible_device_list = str(hvd.local_rank())
+            # print('DEBUG: ', str(hvd.local_rank()))
         else:
             # buildup gpus='0,1,2...'
             config.gpu_options.allow_growth = False
@@ -129,6 +130,7 @@ def run_model(model, horovod=False, gpu_num=1, output=None,
                                    run_metadata=run_metadata)
                     losses.append(res[1])
                 else:
+                    
                     res = sess.run(op, options=opts,
                                    run_metadata=run_metadata)
 
