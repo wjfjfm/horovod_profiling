@@ -112,11 +112,12 @@ class Horovod_Allreduce:
         dtype = tf.float32
 
         model = os.getenv("ALLREDUCE_MODEL")
+        ite = int(os.getenv("ALLREDUCE_ITE"))
 
         with open('allreduce_shape/%s_allreduce_shape.txt' % model, 'r') as f:
             content = f.readlines()
         
-        for i in range (128):
+        for i in range (ite):
             for line in content:
                 nFT = int(line)
                 data_a = tf.random.uniform([1, nFT], 0.0, 1.0, dtype=dtype)
@@ -126,6 +127,28 @@ class Horovod_Allreduce:
 
         return final_op, None 
 
+class Horovod_Allreduce_const_workload:
+    def make_model(batchsize=None):
+
+        hvd.init()
+        hvd_op_list = []
+        dtype = tf.float32
+
+        nKB = int(os.getenv("N_KB_PER_TENSOR"))
+
+        data_a = tf.random.uniform(
+            [256, nKB], 0.0, 1.0, dtype=dtype)
+
+        ite_times = int(os.getenv("N_ITERATION_TIMES")) 
+
+        for i in range(ite_times):
+            tensor = data_a
+            summed = hvd.allreduce(tensor, average=False)
+            hvd_op_list.append(summed)
+        final_op = tf.shape_n(hvd_op_list)        
+
+        return final_op, None
+    
 # set the name of available models
 _model_name = {
         'nasnet': RNN_Nasnet,
@@ -136,7 +159,7 @@ _model_name = {
         'vgg16': CNN_Vgg16,
         'alexnet': CNN_Alexnet,
         'inception3': CNN_Inception3,
-        'allreduce': Horovod_Allreduce
+        'allreduce': Horovod_Allreduce,
 
     }
 
@@ -149,7 +172,8 @@ _model_name_horovod = {
         'vgg16': CNN_horovod_Vgg16,
         'alexnet': CNN_horovod_Alexnet,
         'inception3': CNN_horovod_Inception3,
-        'allreduce': Horovod_Allreduce
+        'allreduce': Horovod_Allreduce,
+        'allreduce_const': Horovod_Allreduce_const_workload
 }
 
 

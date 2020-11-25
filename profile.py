@@ -88,7 +88,7 @@ if __name__ == '__main__':
     for i in args.models:
         if i == 'all':
             models = tf_model.get_model_list(horovod=args.horovod)
-        elif tf_model.exist_model(i):
+        elif tf_model.exist_model(i, horovod=args.horovod):
             models.append(i)
         else:
             raise ValueError('model: %s doesn\'t exist' % i)

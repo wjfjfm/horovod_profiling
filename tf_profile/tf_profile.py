@@ -47,7 +47,7 @@ def save_graph(graph_def, path='./', filename='graph'):
     tf.io.write_graph(graph_def, path, filename + '.pbtxt')
 
 
-def save_partition_graph_shapes(metadata, path='./', filename='graph'):
+def save_partition_graph(metadata, path='./', filename='graph'):
     filepath = os.path.join(path, filename)
     for count, partition in enumerate(metadata.partition_graphs):
         graph_txt = text_format.MessageToString(partition)
@@ -56,7 +56,7 @@ def save_partition_graph_shapes(metadata, path='./', filename='graph'):
             file.write(graph_txt)
 
 
-def save_partition_graph(metadata, path='./', filename='graph'):
+def save_partition_graph_shapes(metadata, path='./', filename='graph'):
     for count, partition in enumerate(metadata.partition_graphs):
         graph_txt = text_format.MessageToString(partition)
 
