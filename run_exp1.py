@@ -19,7 +19,14 @@ for gpu in gpus:
         
 
         commands = []
-        commands.append('ALLREDUCE_MODEL=%s ALLREDUCE_ITE=%d python profile.py -m allreduce --session 1 --step 80 --horovod -n %d -o allreduce_profile4/%s_gpu_%d_ite_%d_size_%.2fMB_total_%.2fMB -t' % (model, ite, gpu, model, gpu, ite, size*4/1024/1024, size*ite*4/1024/1024  ))
+        commands.append('mpirun -np 8 -H 10.150.144.216:4,10.150.144.218:4 \
+       -bind-to none -map-by slot \
+    -x NCCL_DEBUG=INFO -x LD_LIBRARY_PATH -x PATH \
+    -x NCCL_SOCKET_IFNAME=^lo,docker0 \
+    -mca pml ob1 -mca btl ^openib \
+    -mca btl_tcp_if_exclude lo,docker0 \
+	--allow-run-as-root \
+-x ALLREDUCE_MODEL=%s -x ALLREDUCE_ITE=%d python profile.py --horovod -m allreduce --session 1 --step 80 --horovod -n %d -o allreduce_profile4/%s_gpu_%d_ite_%d_size_%.2fMB_total_%.2fMB -t' % (model, ite, gpu, model, gpu, ite, size*4/1024/1024, size*ite*4/1024/1024  ))
 
         for cmd in commands:
             try:
