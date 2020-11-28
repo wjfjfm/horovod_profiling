@@ -17,6 +17,8 @@ RUN apt-get update && apt-get install --no-install-recommends --allow-downgrades
     build-essential \
     git \
     wget \
+    openssh-client \
+    openssh-server \
     python${PYTHON_VERSION} \
     python${PYTHON_VERSION}-dev \
     python3-pip
@@ -63,14 +65,14 @@ RUN python3 -m pip install --upgrade pip && \
         PyYAML==5.1.2
 
 # Install horovod
-HOROVOD_WITH_TENSORFLOW=1 HOROVOD_GPU_ALLREDUCE=NCCL \
-    HOROVOD_NCCL_HOME=/home/v-jwang1/nccl/build HOROVOD_CUDA_HOME=/usr/local/cuda-10.0/ python -m pip install --no-cache-dir horovod
+RUN HOROVOD_WITH_TENSORFLOW=1 HOROVOD_GPU_ALLREDUCE=NCCL \
+    HOROVOD_NCCL_HOME=/nccl/build HOROVOD_CUDA_HOME=/usr/local/cuda-10.0/ python -m pip install --no-cache-dir horovod
 
-RUN git clong msrasrg@vs-ssh.visualstudio.com:v3/msrasrg/SuperScaler/SuperScaler
-RUN export PYTHONPATH=SuperScaler/src/
+# RUN git clong msrasrg@vs-ssh.visualstudio.com:v3/msrasrg/SuperScaler/SuperScaler
+# RUN export PYTHONPATH=SuperScaler/src/
 
-COPY . /horovod_profiling
+RUN git clone https://github.com/wjfjfm/horovod_profiling.git
 WORKDIR /horovod_profiling
 
-# Install SuperScaler package
-RUN python3 -m pip install .
+# # Install SuperScaler package
+# RUN python3 -m pip install .
