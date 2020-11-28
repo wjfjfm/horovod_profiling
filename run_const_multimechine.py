@@ -10,7 +10,7 @@ for nKB in nKBs:
     commands = []
     commands.append("mpirun -np 8 -H 10.150.144.216:4,10.150.144.218:4 \
        -bind-to none -map-by slot \
-    -x NCCL_DEBUG=INFO -x LD_LIBRARY_PATH -x PATH \
+    -x LD_LIBRARY_PATH -x PATH \
     -x NCCL_SOCKET_IFNAME=^lo,docker0 \
     -mca pml ob1 -mca btl ^openib \
     -mca btl_tcp_if_exclude lo,docker0 \
