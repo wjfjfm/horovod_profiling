@@ -74,5 +74,8 @@ RUN HOROVOD_WITH_TENSORFLOW=1 HOROVOD_GPU_ALLREDUCE=NCCL \
 RUN git clone https://github.com/wjfjfm/horovod_profiling.git
 WORKDIR /horovod_profiling
 
+RUN cp config /root/.ssh/config
+RUN mkdir /run/sshd 
+
 # # Install SuperScaler package
 # RUN python3 -m pip install .
