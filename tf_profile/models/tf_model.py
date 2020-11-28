@@ -141,8 +141,9 @@ class Horovod_Allreduce_const_workload:
 
         ite_times = int(os.getenv("N_ITERATION_TIMES")) 
 
+        tensor = data_a
         for i in range(ite_times):
-            tensor = data_a
+            tensor = data_a + tensor
             summed = hvd.allreduce(tensor, average=False)
             hvd_op_list.append(summed)
         final_op = tf.shape_n(hvd_op_list)        
