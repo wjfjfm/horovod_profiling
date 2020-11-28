@@ -5,7 +5,7 @@ nKBs = [pow(2,i) for i in range(21)]
 Max_iteration = 128
 Max_KB_size = 1024*1024
 
-for nKB in nKBs
+for nKB in nKBs:
     ite_times = min(Max_iteration, Max_KB_size/nKB)
     commands = []
     commands.append("mpirun -np 8 -H 10.150.144.216:4,10.150.144.218:4 \
