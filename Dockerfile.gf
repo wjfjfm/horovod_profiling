@@ -1,12 +1,9 @@
 FROM nvidia/cuda:10.1-devel-ubuntu18.04
 
 # TensorFlow version is tightly coupled to CUDA and cuDNN so it should be selected carefully
-ENV TENSORFLOW_VERSION=2.3.0
-ENV PYTORCH_VERSION=1.6.0
-ENV TORCHVISION_VERSION=0.7.0
+ENV TENSORFLOW_VERSION=1.15
 ENV CUDNN_VERSION=7.6.5.32-1+cuda10.1
 ENV NCCL_VERSION=2.7.8-1+cuda10.1
-ENV MXNET_VERSION=1.6.0.post0
 
 # Python 3.7 is supported by Ubuntu Bionic out of the box
 ARG python=3.7
@@ -48,10 +45,6 @@ RUN pip install tensorflow==${TENSORFLOW_VERSION} \
                 keras \
                 h5py
 
-RUN PYTAGS=$(python -c "from packaging import tags; tag = list(tags.sys_tags())[0]; print(f'{tag.interpreter}-{tag.abi}')") && \
-    pip install https://download.pytorch.org/whl/cu101/torch-${PYTORCH_VERSION}%2Bcu101-${PYTAGS}-linux_x86_64.whl \
-        https://download.pytorch.org/whl/cu101/torchvision-${TORCHVISION_VERSION}%2Bcu101-${PYTAGS}-linux_x86_64.whl
-RUN pip install mxnet-cu101==${MXNET_VERSION}
 
 # Install Open MPI
 RUN mkdir /tmp/openmpi && \
@@ -65,24 +58,21 @@ RUN mkdir /tmp/openmpi && \
     ldconfig && \
     rm -rf /tmp/openmpi
 
-# Install Horovod, temporarily using CUDA stubs
-RUN ldconfig /usr/local/cuda/targets/x86_64-linux/lib/stubs && \
-    HOROVOD_GPU_OPERATIONS=NCCL HOROVOD_WITH_TENSORFLOW=1 HOROVOD_WITH_PYTORCH=1 HOROVOD_WITH_MXNET=1 \
-         pip install --no-cache-dir horovod && \
-    ldconfig
+# Install MPI.
+RUN wget --progress=dot:mega -O /tmp/openmpi-3.0.0-bin.tar.gz https://github.com/horovod/horovod/files/1596799/openmpi-3.0.0-bin.tar.gz && \
+            cd /usr/local && tar -zxf /tmp/openmpi-3.0.0-bin.tar.gz && ldconfig && \
+            echo "mpirun -allow-run-as-root -np 2 -H localhost:2 -bind-to none -map-by slot -mca mpi_abort_print_stack 1" > /mpirun_command;
 
 # Install OpenSSH for MPI to communicate between containers
 RUN apt-get install -y --no-install-recommends openssh-client openssh-server && \
     mkdir -p /var/run/sshd
 
 # Install infinibands
-RUN apt-get install -y --no-install-recommends rdma-core ibverbs-utils libtool m4 automake libibverbs-dev librdmacm-dev libibumad-dev
+RUN apt-get install -y --no-install-recommends rdma-core ibverbs-utils libtool m4 automake libibverbs-dev librdmacm-dev libibumad-dev net-tools
 
 # Allow OpenSSH to talk to containers without asking for confirmation
 RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new && \
     echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new && \
     mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config
 
-RUN git clone https://github.com/wjfjfm/horovod_profiling.git
-WORKDIR /horovod_profiling
 
