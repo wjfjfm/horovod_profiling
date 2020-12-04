@@ -75,6 +75,9 @@ RUN ldconfig /usr/local/cuda/targets/x86_64-linux/lib/stubs && \
 RUN apt-get install -y --no-install-recommends openssh-client openssh-server && \
     mkdir -p /var/run/sshd
 
+# Install infinibands
+RUN apt-get install -y --no-install-recommends rmda-core ibverbs-utils libtool m4 automake libibverbs-dev librdmacm-dev libibumad-dev
+
 # Allow OpenSSH to talk to containers without asking for confirmation
 RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new && \
     echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new && \
