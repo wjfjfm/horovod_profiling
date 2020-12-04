@@ -54,6 +54,12 @@ RUN wget --progress=dot:mega -O /tmp/openmpi-3.0.0-bin.tar.gz https://github.com
 RUN apt-get install -y --no-install-recommends openssh-client openssh-server && \
     mkdir -p /var/run/sshd
 
+# Install Horovod, temporarily using CUDA stubs
+RUN ldconfig /usr/local/cuda/targets/x86_64-linux/lib/stubs && \
+    HOROVOD_GPU_OPERATIONS=NCCL HOROVOD_WITH_TENSORFLOW=1 \
+         pip install --no-cache-dir horovod && \
+    ldconfig
+
 # Install infinibands
 RUN apt-get install -y --no-install-recommends rdma-core ibverbs-utils libtool m4 automake libibverbs-dev librdmacm-dev libibumad-dev net-tools
 
