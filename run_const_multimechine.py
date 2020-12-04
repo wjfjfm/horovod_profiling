@@ -1,7 +1,7 @@
 import os
 import itertools
 
-nKBs = [pow(2,i) for i in range(21)]
+nKBs = [pow(2,i) for i in range(17, 21)]
 Max_iteration = 128
 Max_KB_size = 1024*1024
 
