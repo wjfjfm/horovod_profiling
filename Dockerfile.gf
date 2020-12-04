@@ -86,5 +86,3 @@ RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_confi
 RUN git clone https://github.com/wjfjfm/horovod_profiling.git
 WORKDIR /horovod_profiling
 
-RUN cp config /root/.ssh/config
-RUN mkdir /run/sshd 
