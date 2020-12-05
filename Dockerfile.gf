@@ -1,13 +1,9 @@
-FROM nvidia/cuda:10.1-devel-ubuntu18.04
-
-# TensorFlow version is tightly coupled to CUDA and cuDNN so it should be selected carefully
-ENV TENSORFLOW_VERSION=1.15
-ENV CUDNN_VERSION=7.6.5.32-1+cuda10.1
-ENV NCCL_VERSION=2.7.8-1+cuda10.1
+FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu18.04
 
 # Python 3.7 is supported by Ubuntu Bionic out of the box
 ARG python=3.7
 ENV PYTHON_VERSION=${python}
+ENV TENSORFLOW_VERSION = 1.15
 
 # Set default shell to /bin/bash
 SHELL ["/bin/bash", "-cu"]
@@ -21,9 +17,6 @@ RUN apt-get update && apt-get install -y --allow-downgrades --allow-change-held-
         vim \
         wget \
         ca-certificates \
-        libcudnn7=${CUDNN_VERSION} \
-        libnccl2=${NCCL_VERSION} \
-        libnccl-dev=${NCCL_VERSION} \
         libjpeg-dev \
         libpng-dev \
         python${PYTHON_VERSION} \
@@ -54,10 +47,16 @@ RUN wget --progress=dot:mega -O /tmp/openmpi-3.0.0-bin.tar.gz https://github.com
 RUN apt-get install -y --no-install-recommends openssh-client openssh-server && \
     mkdir -p /var/run/sshd
 
+# Install nccl
+
+RUN git clone https://github.com/NVIDIA/nccl.git && \
+    cd nccl && \
+    make -j8 src.build
+
 # Install Horovod, temporarily using CUDA stubs
-RUN ldconfig /usr/local/cuda/targets/x86_64-linux/lib/stubs && \
-    HOROVOD_GPU_OPERATIONS=NCCL HOROVOD_WITH_TENSORFLOW=1 \
-         pip install --no-cache-dir horovod && \
+RUN HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 \
+    HOROVOD_NCCL_HOME=/nccl/build HOROVOD_CUDA_HOME=/usr/local/cuda/ \
+    python -m pip install --no-cache-dir horovod && \
     ldconfig
 
 # Install infinibands

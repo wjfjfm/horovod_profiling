@@ -13,15 +13,26 @@ ARG python=3.7
 ENV PYTHON_VERSION=${python}
 
 # install the dependencies
-RUN apt-get update && apt-get install --no-install-recommends --allow-downgrades -y \
-    build-essential \
-    git \
-    wget \
-    openssh-client \
-    openssh-server \
-    python${PYTHON_VERSION} \
-    python${PYTHON_VERSION}-dev \
-    python3-pip
+RUN apt-get update && apt-get install -y --allow-downgrades --allow-change-held-packages --no-install-recommends \
+        build-essential \
+        cmake \
+        g++-4.8 \
+        git \
+        curl \
+        vim \
+        wget \
+        ca-certificates \
+        libcudnn7=${CUDNN_VERSION} \
+        libnccl2=${NCCL_VERSION} \
+        libnccl-dev=${NCCL_VERSION} \
+        libjpeg-dev \
+        libpng-dev \
+        python${PYTHON_VERSION} \
+        python${PYTHON_VERSION}-dev \
+        python${PYTHON_VERSION}-distutils \
+        librdmacm1 \
+        libibverbs1 \
+        ibverbs-providers
 
 RUN wget -qO- "https://cmake.org/files/v3.18/cmake-3.18.2-Linux-x86_64.tar.gz" | \
   tar --strip-components=1 -xz -C /usr/local
