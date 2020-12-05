@@ -68,4 +68,15 @@ RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_confi
     echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new && \
     mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config
 
+# download perttest
+RUN git clone https://github.com/linux-rdma/perftest.git && \
+    cd perftest && \
+    ./autogen.sh && ./configure CUDA_H_PATH=/usr/local/cuda/include/cuda.h && make -j 
 
+# download nccl-tests
+RUN git clone https://github.com/NVIDIA/nccl-tests.git && \
+    cd nccl-tests && \
+    make MPI=1 -j8
+
+# download experiment repo
+RUN git clone https://github.com/wjfjfm/horovod_profiling.git
