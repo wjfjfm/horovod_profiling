@@ -38,9 +38,14 @@ RUN pip install tensorflow==1.15 \
                 h5py
 
 # Install MPI.
-RUN wget --progress=dot:mega -O /tmp/openmpi-3.0.0-bin.tar.gz https://github.com/horovod/horovod/files/1596799/openmpi-3.0.0-bin.tar.gz && \
-            cd /usr/local && tar -zxf /tmp/openmpi-3.0.0-bin.tar.gz && ldconfig && \
-            echo "mpirun -allow-run-as-root -np 2 -H localhost:2 -bind-to none -map-by slot -mca mpi_abort_print_stack 1" > /mpirun_command;
+# install openmpi
+RUN wget https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.2.tar.gz && \
+    tar xzvf openmpi-4.0.2.tar.gz && \
+    cd openmpi-4.0.2 && \
+    ./configure && \
+    make -j10 && \
+    make install && \
+    ldconfig
 
 # Install OpenSSH for MPI to communicate between containers
 RUN apt-get install -y --no-install-recommends openssh-client openssh-server && \
