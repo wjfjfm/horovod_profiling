@@ -3,7 +3,6 @@ FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu18.04
 # Python 3.7 is supported by Ubuntu Bionic out of the box
 ARG python=3.7
 ENV PYTHON_VERSION=${python}
-ENV TENSORFLOW_VERSION = 1.15
 
 # Set default shell to /bin/bash
 SHELL ["/bin/bash", "-cu"]
@@ -34,7 +33,7 @@ RUN curl -O https://bootstrap.pypa.io/get-pip.py && \
 
 # Install TensorFlow, Keras, PyTorch and MXNet
 RUN pip install future typing packaging
-RUN pip install tensorflow==${TENSORFLOW_VERSION} \
+RUN pip install tensorflow==1.15 \
                 keras \
                 h5py
 
