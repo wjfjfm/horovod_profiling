@@ -1,18 +1,12 @@
 FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu18.04
 
-# because 'docker build' cannot call GPU, so you need to run like this:
-# $ docker build -t superscaler -f Dockerfile.CUDA .
-# run docker in interactive mode:
-# $ docker run --it --runtime=nvidia superscaler bash
-# or if you want to specify the GPUs to use:
-# $ docker run --it --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=2,3 superscaler bash
-
-
-# python version is related to tensorflow version
+# Python 3.7 is supported by Ubuntu Bionic out of the box
 ARG python=3.7
 ENV PYTHON_VERSION=${python}
 
-# install the dependencies
+# Set default shell to /bin/bash
+SHELL ["/bin/bash", "-cu"]
+
 RUN apt-get update && apt-get install -y --allow-downgrades --allow-change-held-packages --no-install-recommends \
         build-essential \
         cmake \
@@ -22,9 +16,6 @@ RUN apt-get update && apt-get install -y --allow-downgrades --allow-change-held-
         vim \
         wget \
         ca-certificates \
-        libcudnn7=${CUDNN_VERSION} \
-        libnccl2=${NCCL_VERSION} \
-        libnccl-dev=${NCCL_VERSION} \
         libjpeg-dev \
         libpng-dev \
         python${PYTHON_VERSION} \
@@ -34,59 +25,61 @@ RUN apt-get update && apt-get install -y --allow-downgrades --allow-change-held-
         libibverbs1 \
         ibverbs-providers
 
-RUN wget -qO- "https://cmake.org/files/v3.18/cmake-3.18.2-Linux-x86_64.tar.gz" | \
-  tar --strip-components=1 -xz -C /usr/local
+RUN ln -s /usr/bin/python${PYTHON_VERSION} /usr/bin/python
 
-# set softlink of python3 and python
-RUN ln -sf /usr/bin/python${PYTHON_VERSION} /usr/bin/python3 && \
-    ln -sf /usr/bin/python3 /usr/bin/python
+RUN curl -O https://bootstrap.pypa.io/get-pip.py && \
+    python get-pip.py && \
+    rm get-pip.py
 
+# Install TensorFlow, Keras, PyTorch and MXNet
+RUN pip install future typing packaging
+RUN pip install tensorflow==1.15 \
+                keras \
+                h5py
+
+# Install MPI.
 # install openmpi
-RUN wget https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.2.tar.gz
-RUN tar xzvf openmpi-4.0.2.tar.gz
+RUN wget https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.2.tar.gz && \
+    tar xzvf openmpi-4.0.2.tar.gz && \
+    cd openmpi-4.0.2 && \
+    ./configure && \
+    make -j10 && \
+    make install && \
+    ldconfig
 
-WORKDIR openmpi-4.0.2
-RUN ./configure
-RUN make -j10
-RUN make install
-RUN ldconfig
-WORKDIR /
+# Install OpenSSH for MPI to communicate between containers
+RUN apt-get install -y --no-install-recommends openssh-client openssh-server && \
+    mkdir -p /var/run/sshd
 
-# check openmpi
-RUN which mpicc
-RUN mpicc -show
-RUN which mpiexec
-RUN mpiexec --version
+# Install nccl
 
-# install nccl
-RUN git clone https://github.com/NVIDIA/nccl.git
-RUN cd nccl && make -j10 src.build
+RUN git clone https://github.com/NVIDIA/nccl.git && \
+    cd nccl && \
+    make -j8 src.build
 
-# Install python packages
-RUN python3 -m pip install --upgrade pip && \
-    python3 -m pip install setuptools && \
-    python3 -m pip install flake8 && \
-    python3 -m pip install --no-cache-dir \
-        tensorflow==1.15 \
-        pytest==5.3.2 \
-        protobuf==3.8 \
-        setuptools==41.0.0 \
-        bitmath==1.3.3.1 \
-        humanreadable==0.1.0 \
-        PyYAML==5.1.2
+# Install Horovod, temporarily using CUDA stubs
+RUN HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 \
+    HOROVOD_NCCL_HOME=/nccl/build HOROVOD_CUDA_HOME=/usr/local/cuda/ \
+    python -m pip install --no-cache-dir horovod && \
+    ldconfig
 
-# Install horovod
-RUN HOROVOD_WITH_TENSORFLOW=1 HOROVOD_GPU_ALLREDUCE=NCCL \
-    HOROVOD_NCCL_HOME=/nccl/build HOROVOD_CUDA_HOME=/usr/local/cuda-10.0/ python -m pip install --no-cache-dir horovod
+# Install infinibands
+RUN apt-get install -y --no-install-recommends rdma-core ibverbs-utils libtool m4 automake libibverbs-dev librdmacm-dev libibumad-dev net-tools
 
-# RUN git clong msrasrg@vs-ssh.visualstudio.com:v3/msrasrg/SuperScaler/SuperScaler
-# RUN export PYTHONPATH=SuperScaler/src/
+# Allow OpenSSH to talk to containers without asking for confirmation
+RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new && \
+    echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new && \
+    mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config
 
+# download perttest
+RUN git clone https://github.com/linux-rdma/perftest.git && \
+    cd perftest && \
+    ./autogen.sh && ./configure CUDA_H_PATH=/usr/local/cuda/include/cuda.h && make -j 
+
+# download nccl-tests
+RUN git clone https://github.com/NVIDIA/nccl-tests.git && \
+    cd nccl-tests && \
+    make MPI=1 -j8
+
+# download experiment repo
 RUN git clone https://github.com/wjfjfm/horovod_profiling.git
-WORKDIR /horovod_profiling
-
-RUN cp config /root/.ssh/config
-RUN mkdir /run/sshd 
-
-# # Install SuperScaler package
-# RUN python3 -m pip install .
